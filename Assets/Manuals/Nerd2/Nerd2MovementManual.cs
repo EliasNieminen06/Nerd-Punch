@@ -1,11 +1,15 @@
+using System.Collections;
 using UnityEngine;
 
 public class Nerd2MovementManual : MonoBehaviour
 {
-    private float horizontal;
-    private float speed = 4f;
-    private float jumpingPower = 8f;
-    private bool isFacingRight = true;
+    [SerializeField] private float horizontal;
+    [SerializeField] private float speed = 4f;
+    [SerializeField] private float airSpeed = 2f;
+    [SerializeField] private float jumpingPower = 8f;
+    [SerializeField] private bool isFacingRight = true;
+    [SerializeField] public bool attacked = false;
+    [SerializeField] private bool waited = false;
 
     private Rigidbody2D rb;
     [SerializeField] private Transform groundCheck;
@@ -31,16 +35,43 @@ public class Nerd2MovementManual : MonoBehaviour
         }
 
         Flip();
+
+        if (attacked)
+        {
+            if (waited)
+            {
+                if (IsGrounded())
+                {
+                    attacked = false;
+                }
+            }
+        }
     }
 
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+        if (!attacked)
+        {
+            if (IsGrounded())
+            {
+                rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+            } 
+            else
+            {
+                rb.velocity = new Vector2(horizontal * airSpeed, rb.velocity.y);
+            }
+
+        }
     }
 
     private bool IsGrounded()
     {
         return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+    }
+
+    public void Attacked()
+    {
+        wait();
     }
 
     private void Flip()
@@ -52,5 +83,12 @@ public class Nerd2MovementManual : MonoBehaviour
             localScale.x *= -1f;
             transform.localScale = localScale;
         }
+    }
+
+    private IEnumerator wait()
+    {
+        waited = false;
+        yield return new WaitForSeconds(0.2f);
+        waited = true;
     }
 }
